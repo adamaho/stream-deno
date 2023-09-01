@@ -37,10 +37,4 @@ app.get("/increment", () => {
   return new Response("dene");
 });
 
-Deno.serve(
-  {
-    cert: await Deno.readTextFile("./cert.pem"),
-    key: await Deno.readTextFile("./key.pem"),
-  },
-  app.fetch
-);
+Deno.serve(app.fetch);
