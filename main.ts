@@ -2,6 +2,10 @@ import { Hono } from "https://deno.land/x/hono@v3.5.6/mod.ts";
 
 const app = new Hono();
 
+const kv = await Deno.openKv();
+
+await kv.set(["users", "alice"], { name: "Alice" });
+
 let count = 0;
 
 app.get("/", () => {
@@ -18,7 +22,7 @@ app.get("/", () => {
     },
     cancel() {
       bc.close();
-      console.log("closeddd");
+      console.log("closed");
     },
   });
 
