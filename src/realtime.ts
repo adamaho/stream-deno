@@ -25,23 +25,22 @@ function json(d: RealtimeResponse<unknown>) {
 }
 
 class Realtime<RealtimeData = unknown> {
-  private kv: Deno.Kv;
+  private data: unknown;
   private topic: string;
 
-  constructor(topic: string, kv: Deno.Kv) {
-    this.kv = kv;
+  constructor(topic: string) {
     this.topic = topic;
   }
 
-  private setData = async (d: unknown) => {
-    await this.kv.set([this.topic, "prev"], d);
+  private setData = (d: unknown) => {
+    this.data = d;
   };
 
-  private getData = async () => {
-    return await this.kv.get([this.topic, "prev"]);
+  private getData = () => {
+    return this.data;
   };
 
-  public response = async (_req: Request, initialData: unknown) => {
+  public response = (_req: Request, initialData: unknown) => {
     const channel = new BroadcastChannel(this.topic);
 
     const body = new ReadableStream({
@@ -57,7 +56,7 @@ class Realtime<RealtimeData = unknown> {
       },
     });
 
-    await this.setData(initialData);
+    this.setData(initialData);
 
     return new Response(body, {
       headers: {
@@ -67,30 +66,15 @@ class Realtime<RealtimeData = unknown> {
     });
   };
 
-  public patch = async (d: RealtimeData) => {
-    const prev = await this.getData();
-
-    if (!(typeof prev.value === "number")) {
-      return;
-    }
-
-    const patch = jsonpatch.compare(response(prev.value), response(d));
+  public patch = (d: RealtimeData) => {
+    const prev = this.getData();
+    const patch = jsonpatch.compare(response(prev), response(d));
     const channel = new BroadcastChannel(this.topic);
     channel.postMessage(patch);
-    try {
-      await this.setData(d);
-    } catch (err) {
-      console.log(err);
-    }
+    this.setData(d);
   };
 }
 
-export async function createRealtime(topic: string, initialData: unknown) {
-  try {
-    const kv = await Deno.openKv();
-    await kv.set([topic, "prev"], initialData);
-    return new Realtime(topic, kv);
-  } catch (err) {
-    console.log(err);
-  }
+export function createRealtime(topic: string) {
+  return new Realtime(topic);
 }

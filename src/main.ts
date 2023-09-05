@@ -8,11 +8,12 @@ const INITIAL_COUNT = 0;
 const kv = await Deno.openKv();
 await kv.set(["count"], INITIAL_COUNT);
 
-const realtime = await createRealtime("count", INITIAL_COUNT);
+const realtime = await createRealtime("count");
 
 app.get("/", async (c) => {
-  const count = await kv.get(["count"]);
-  return realtime!.response(c.req.raw, count.value ?? INITIAL_COUNT);
+  const countResult = await kv.get(["count"]);
+  const count = countResult.value ?? INITIAL_COUNT;
+  return realtime.response(c.req.raw, count);
 });
 
 app.get("/increment", async () => {
@@ -20,8 +21,8 @@ app.get("/increment", async () => {
 
   if (typeof count.value === "number") {
     const newCount = count.value + 1;
+    realtime.patch(newCount);
     await kv.set(["count"], newCount);
-    await realtime!.patch(newCount);
     return new Response("dene");
   }
 
