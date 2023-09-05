@@ -25,15 +25,23 @@ function json(d: RealtimeResponse<unknown>) {
 }
 
 class Realtime<RealtimeData = unknown> {
-  private data: unknown;
+  private kv: Deno.Kv;
   private topic: string;
 
-  constructor(topic: string, initialData: unknown) {
-    this.data = initialData;
+  constructor(topic: string, kv: Deno.Kv) {
+    this.kv = kv;
     this.topic = topic;
   }
 
-  public response = (_req: Request, initialData: unknown) => {
+  private setData = async (d: unknown) => {
+    await this.kv.set([this.topic, "prev"], d);
+  };
+
+  private getData = async () => {
+    return await this.kv.get([this.topic, "prev"]);
+  };
+
+  public response = async (_req: Request, initialData: unknown) => {
     const channel = new BroadcastChannel(this.topic);
 
     const body = new ReadableStream({
@@ -49,7 +57,7 @@ class Realtime<RealtimeData = unknown> {
       },
     });
 
-    this.data = initialData;
+    await this.setData(initialData);
 
     return new Response(body, {
       headers: {
@@ -59,14 +67,30 @@ class Realtime<RealtimeData = unknown> {
     });
   };
 
-  public patch = (d: RealtimeData) => {
-    const patch = jsonpatch.compare(response(this.data), response(d));
+  public patch = async (d: RealtimeData) => {
+    const prev = await this.getData();
+
+    if (!prev.value) {
+      return;
+    }
+
+    const patch = jsonpatch.compare(response(prev.value), response(d));
     const channel = new BroadcastChannel(this.topic);
     channel.postMessage(patch);
-    this.data = d;
+    try {
+      await this.setData(d);
+    } catch (err) {
+      console.log(err);
+    }
   };
 }
 
-export function createRealtime(topic: string, initialData: unknown) {
-  return new Realtime(topic, initialData);
+export async function createRealtime(topic: string, initialData: unknown) {
+  try {
+    const kv = await Deno.openKv();
+    await kv.set([topic, "prev"], initialData);
+    return new Realtime(topic, kv);
+  } catch (err) {
+    console.log(err);
+  }
 }
