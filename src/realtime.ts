@@ -70,7 +70,7 @@ class Realtime<RealtimeData = unknown> {
   public patch = async (d: RealtimeData) => {
     const prev = await this.getData();
 
-    if (!prev.value) {
+    if (!(typeof prev.value === "number")) {
       return;
     }
 
