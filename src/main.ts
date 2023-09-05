@@ -19,8 +19,9 @@ app.get("/increment", async () => {
   const count = await kv.get<number>(["count"]);
 
   if (typeof count.value === "number") {
-    await kv.set(["count"], count.value + 1);
-    realtime.patch(count.value);
+    const newCount = count.value + 1;
+    await kv.set(["count"], newCount);
+    realtime.patch(newCount);
     return new Response("dene");
   }
 

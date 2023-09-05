@@ -1,4 +1,4 @@
-import jsonpatch from "npm:fast-json-patch";
+import jsonpatch from "https://esm.sh/fast-json-patch@3.1.1";
 
 type RealtimeResponse<T> = {
   data: T;
@@ -41,13 +41,15 @@ class Realtime<RealtimeData = unknown> {
         controller.enqueue(json(response(initialData)));
 
         channel.onmessage = (e) => {
-          controller.enqueue(json(response(e.data)));
+          controller.enqueue(json(e.data));
         };
       },
       cancel() {
         channel.close();
       },
     });
+
+    this.data = initialData;
 
     return new Response(body, {
       headers: {

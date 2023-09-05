@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "fast-json-patch": "https://esm.sh/v132/fast-json-patch@3.1.1"
+  },
+  "scopes": {}
+}

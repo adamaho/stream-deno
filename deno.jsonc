@@ -1,6 +1,10 @@
 {
+  "importMap": "import_map.json",
   "tasks": {
-    "dev": "deno run --watch --unstable --allow-net --allow-read src/main.ts"
+    "dev": "deno run --watch --unstable --allow-net --allow-read src/main.ts",
+    "esm:add": "deno run -A https://esm.sh/v132 add",
+    "esm:update": "deno run -A https://esm.sh/v132 update",
+    "esm:remove": "deno run -A https://esm.sh/v132 remove"
   },
   "compilerOptions": {
     "lib": ["deno.window", "deno.unstable"]
