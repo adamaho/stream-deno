@@ -31,8 +31,8 @@ app.get("/increment", async () => {
 Deno.serve(
   {
     port: 3000,
-    cert: Deno.readTextFileSync("./cert.pem"),
-    key: Deno.readTextFileSync("./key.pem"),
+    // cert: Deno.readTextFileSync("./cert.pem"),
+    // key: Deno.readTextFileSync("./key.pem"),
   },
   app.fetch
 );
