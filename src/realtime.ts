@@ -63,7 +63,6 @@ class Realtime<RealtimeData = unknown> {
     const patch = jsonpatch.compare(response(this.data), response(d));
     const channel = new BroadcastChannel(this.topic);
     channel.postMessage(patch);
-    channel.close();
     this.data = d;
   };
 }
